@@ -1,77 +1,48 @@
 import { db } from "../db";
 
 export type SettingsRow = {
-  id: number;
-  language: string;
-  notificationsEnabled: number; // SQLite хранит boolean как INTEGER (0/1)
-  weekdayTime: string;
-  weekendTime: string;
-  soundId: string;
-  updatedAt: string | null;
+  language: "ka" | "ru";
+  notificationsEnabled: number; // 0/1
+  weekdayTime: string;          // "HH:MM"
+  weekendTime: string;          // "HH:MM"
+  soundId: string;              // "default" | "bell" | "soft" ...
 };
 
-export function getSettings(): SettingsRow | null {
-  return db.getFirstSync<SettingsRow>(
-    `
-    SELECT *
-    FROM settings
-    WHERE id = 1
-    `
+export function getSettings(): SettingsRow {
+  const row = db.getFirstSync<SettingsRow>(
+    `SELECT language, notificationsEnabled, weekdayTime, weekendTime, soundId
+     FROM settings WHERE id = 1`
+  );
+  // гарантируем значения по умолчанию
+  return (
+    row ?? {
+      language: "ka",
+      notificationsEnabled: 0,
+      weekdayTime: "10:00",
+      weekendTime: "11:00",
+      soundId: "default"
+    }
   );
 }
 
-export function updateLanguage(language: "ka" | "ru"): void {
-  db.runSync(
-    `
-    UPDATE settings
-    SET language = ?, updatedAt = datetime('now')
-    WHERE id = 1
-    `,
-    [language]
-  );
-}
-
-export function updateNotificationsEnabled(enabled: boolean): void {
-  db.runSync(
-    `
-    UPDATE settings
-    SET notificationsEnabled = ?, updatedAt = datetime('now')
-    WHERE id = 1
-    `,
-    [enabled ? 1 : 0]
-  );
-}
-
-export function updateWeekdayTime(time: string): void {
-  db.runSync(
-    `
-    UPDATE settings
-    SET weekdayTime = ?, updatedAt = datetime('now')
-    WHERE id = 1
-    `,
-    [time]
-  );
-}
-
-export function updateWeekendTime(time: string): void {
-  db.runSync(
-    `
-    UPDATE settings
-    SET weekendTime = ?, updatedAt = datetime('now')
-    WHERE id = 1
-    `,
-    [time]
-  );
-}
-
-export function updateSoundId(soundId: string): void {
-  db.runSync(
-    `
-    UPDATE settings
-    SET soundId = ?, updatedAt = datetime('now')
-    WHERE id = 1
-    `,
-    [soundId]
-  );
-}
-
+export function updateSettings(patch: Partial<SettingsRow>) {
+    const cur = getSettings();
+    const next = { ...cur, ...patch };
+  
+    db.runSync(
+      `UPDATE settings
+       SET language = ?, notificationsEnabled = ?, weekdayTime = ?, weekendTime = ?, soundId = ?, updatedAt = ?
+       WHERE id = 1`,
+      [
+        next.language,
+        next.notificationsEnabled,
+        next.weekdayTime,
+        next.weekendTime,
+        next.soundId,
+        new Date().toISOString()
+      ]
+    );
+  
+    return next;
+  }
+  

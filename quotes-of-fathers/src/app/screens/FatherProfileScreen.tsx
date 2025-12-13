@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Image, FlatList, Pressable } from "react-native";
+import { View, Text, Image, FlatList, Pressable, SafeAreaView } from "react-native";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 
 import { RootStackParamList } from "../navigation/RootNavigator";
-import { getFatherById } from "../../data/db/repositories/fathersRepo";
+import { getFatherById } from "../../data/db/repositories/fatherDetailRepo";
 import { getQuotesByFatherId } from "../../data/db/repositories/fatherQuotesRepo";
 import { getQuotesCountByFatherId } from "../../data/db/repositories/fatherQuotesCountRepo";
 import { isFavorite, toggleFavorite } from "../../data/db/repositories/favoritesRepo";
@@ -33,11 +33,22 @@ export default function FatherProfileScreen() {
   const headerImage = father.profileLocalPath ?? father.avatarLocalPath;
 
   return (
-    <FlatList
-      data={quotes}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={{ padding: 16 }}
-      ListHeaderComponent={
+    <SafeAreaView style={{ flex: 1 }}>
+      {/* Кнопка назад */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={{ alignSelf: "flex-start", paddingVertical: 8, paddingHorizontal: 12 }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: "500" }}>← {lang === "ru" ? "Назад" : "უკან"}</Text>
+        </Pressable>
+      </View>
+
+      <FlatList
+        data={quotes}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ padding: 16 }}
+        ListHeaderComponent={
         <View style={{ marginBottom: 16 }}>
           <Image
             source={{ uri: headerImage }}
@@ -99,6 +110,7 @@ export default function FatherProfileScreen() {
           </Text>
         </View>
       }
-    />
+      />
+    </SafeAreaView>
   );
 }

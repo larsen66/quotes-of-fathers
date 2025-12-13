@@ -1,5 +1,6 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
 
 import LatestScreen from "../screens/LatestScreen";
 import FavoritesScreen from "../screens/FavoritesScreen";
@@ -11,12 +12,62 @@ const Tab = createBottomTabNavigator();
 
 export default function RootTabs() {
   return (
-    <Tab.Navigator>
-      <Tab.Screen name="Home" component={LatestScreen} options={{ title: "Home" }} />
-      <Tab.Screen name="Favorites" component={FavoritesScreen} options={{ title: "Favorites" }} />
-      <Tab.Screen name="Fathers" component={FathersScreen} options={{ title: "Fathers" }} />
-      <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: "Settings" }} />
-      <Tab.Screen name="About" component={AboutScreen} options={{ title: "About" }} />
+    <Tab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: "#4CAF50",
+        tabBarInactiveTintColor: "#9E9E9E",
+      }}
+    >
+      <Tab.Screen
+        name="Home"
+        component={LatestScreen}
+        options={{
+          title: "Последние",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Favorites"
+        component={FavoritesScreen}
+        options={{
+          title: "Избранные",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Fathers"
+        component={FathersScreen}
+        options={{
+          title: "Все отцы",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="people-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{
+          title: "Настройки",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="About"
+        component={AboutScreen}
+        options={{
+          title: "О нас",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="information-circle-outline" size={size} color={color} />
+          ),
+        }}
+      />
     </Tab.Navigator>
   );
 }

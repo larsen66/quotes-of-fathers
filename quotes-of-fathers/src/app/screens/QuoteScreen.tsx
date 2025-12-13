@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Image, Pressable, ScrollView, Share } from "react-native";
-import { RouteProp, useRoute } from "@react-navigation/native";
+import { View, Text, Image, Pressable, ScrollView, Share, SafeAreaView } from "react-native";
+import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 
 import { RootStackParamList } from "../navigation/RootNavigator";
@@ -14,6 +14,7 @@ export default function QuoteScreen() {
   const lang = (i18n.language === "ru" ? "ru" : "ka") as "ka" | "ru";
 
   const route = useRoute<RouteProps>();
+  const navigation = useNavigation();
   const { quoteId } = route.params;
 
   const [version, setVersion] = useState(0);
@@ -21,7 +22,7 @@ export default function QuoteScreen() {
   const data = useMemo(() => getQuoteById(quoteId), [quoteId, version]);
   if (!data) return null;
 
-  const isFav = isFavorite(quoteId);
+  const isFav = useMemo(() => isFavorite(quoteId), [quoteId, version]);
 
   const fatherName =
     lang === "ru" ? (data.fatherName_ru ?? data.fatherName_ka) : data.fatherName_ka;
@@ -39,8 +40,19 @@ export default function QuoteScreen() {
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20 }}>
-      {/* Фото отца */}
+    <SafeAreaView style={{ flex: 1 }}>
+      {/* Кнопка назад */}
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={{ alignSelf: "flex-start", paddingVertical: 8, paddingHorizontal: 12 }}
+        >
+          <Text style={{ fontSize: 16, fontWeight: "500" }}>← {lang === "ru" ? "Назад" : "უკან"}</Text>
+        </Pressable>
+      </View>
+
+      <ScrollView contentContainerStyle={{ padding: 20 }}>
+        {/* Фото отца */}
       {data.fatherProfileLocalPath ? (
         <Image
           source={{ uri: data.fatherProfileLocalPath }}
@@ -93,6 +105,7 @@ export default function QuoteScreen() {
           </Text>
         </Pressable>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }

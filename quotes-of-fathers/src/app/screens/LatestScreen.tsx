@@ -43,6 +43,11 @@ export default function LatestScreen() {
         const fav = favoriteIds.has(item.id);
         const fatherName = lang === "ru" ? (item.fatherName_ru ?? item.fatherName_ka) : item.fatherName_ka;
         const quoteText = lang === "ru" ? (item.text_ru ?? item.text_ka) : item.text_ka;
+        
+        // Логируем для отладки
+        if (!item.fatherAvatarLocalPath) {
+          console.warn("Missing avatar path for quote:", item.id, "father:", item.fatherId);
+        }
 
         return (
           <Pressable
@@ -53,10 +58,23 @@ export default function LatestScreen() {
           >
             <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
               <View style={{ flexDirection: "row", gap: 12, alignItems: "center", flex: 1 }}>
-                <Image
-                  source={{ uri: item.fatherAvatarLocalPath }}
-                  style={{ width: 44, height: 44, borderRadius: 22 }}
-                />
+                {item.fatherAvatarLocalPath ? (
+                  <Image
+                    source={{ uri: item.fatherAvatarLocalPath }}
+                    style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#e0e0e0" }}
+                    onError={(e) => {
+                      console.warn("Failed to load avatar:", item.fatherAvatarLocalPath, "for father:", item.fatherId);
+                    }}
+                    onLoad={() => {
+                      console.log("Successfully loaded avatar:", item.fatherAvatarLocalPath);
+                    }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#e0e0e0", justifyContent: "center", alignItems: "center" }}>
+                    <Text style={{ fontSize: 20 }}>👤</Text>
+                  </View>
+                )}
                 <Text style={{ fontSize: 16, fontWeight: "600", flex: 1 }}>
                   {fatherName}
                 </Text>

@@ -1,7 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { FlatList, Image, Pressable, Text, View, useWindowDimensions } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
 import { getAllFathers } from "../../data/db/repositories/fathersRepo";
 
@@ -11,8 +11,16 @@ export default function FathersScreen() {
 
   const navigation = useNavigation<any>();
   const { width } = useWindowDimensions();
+  const [version, setVersion] = useState(0);
 
-  const data = useMemo(() => getAllFathers(), []);
+  // Обновляем данные при фокусе экрана (когда пользователь возвращается на вкладку)
+  useFocusEffect(
+    React.useCallback(() => {
+      setVersion(v => v + 1);
+    }, [])
+  );
+
+  const data = useMemo(() => getAllFathers(), [version]);
 
   const GAP = 10;
   const COLS = 3;

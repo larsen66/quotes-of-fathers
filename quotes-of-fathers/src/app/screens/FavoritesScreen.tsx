@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useFocusEffect } from "@react-navigation/native";
 import { getFavoriteQuotes } from "../../data/db/repositories/favoritesListRepo";
 import { toggleFavorite } from "../../data/db/repositories/favoritesRepo";
 
@@ -9,6 +10,13 @@ export default function FavoritesScreen() {
   const lang = (i18n.language === "ru" ? "ru" : "ka") as "ka" | "ru";
 
   const [version, setVersion] = useState(0);
+
+  // Обновляем данные при фокусе экрана (когда пользователь возвращается на вкладку)
+  useFocusEffect(
+    React.useCallback(() => {
+      setVersion(v => v + 1);
+    }, [])
+  );
 
   const data = useMemo(() => getFavoriteQuotes(200), [version]);
 
