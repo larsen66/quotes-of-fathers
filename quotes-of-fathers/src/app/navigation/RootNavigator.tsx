@@ -2,13 +2,18 @@ import React, { useEffect, useState } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import RootTabs from "./RootTabs";
 import FirstSyncRequiredScreen from "../screens/FirstSyncRequiredScreen";
+import QuoteScreen from "../screens/QuoteScreen";
 import { initDb } from "../../data/db/schema";
 import { isInitialSyncCompleted } from "../../data/db/repositories/syncStateRepo";
+import FatherProfileScreen from "../screens/FatherProfileScreen";
 
 export type RootStackParamList = {
-  FirstSync: undefined;
-  Tabs: undefined;
-};
+    Tabs: undefined;
+    Quote: { quoteId: string };
+    FatherProfile: { fatherId: string };
+    FirstSync: undefined;
+  };
+  
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -35,7 +40,12 @@ export default function RootNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {done ? (
-        <Stack.Screen name="Tabs" component={RootTabs} />
+        <>
+          <Stack.Screen name="Tabs" component={RootTabs} />
+          <Stack.Screen name="FatherProfile" component={FatherProfileScreen} />
+          <Stack.Screen name="Quote" component={QuoteScreen} />
+         
+        </>
       ) : (
         <Stack.Screen name="FirstSync" component={FirstSyncRequiredScreen} />
       )}

@@ -22,3 +22,15 @@ export function setInitialSyncCompleted(value: boolean) {
     throw error;
   }
 }
+
+
+export function getLastSyncAt(): string | null {
+  const row = db.getFirstSync<{ lastSyncAt: string | null }>(
+    "SELECT lastSyncAt FROM sync_state WHERE id = 1"
+  );
+  return row?.lastSyncAt ?? null;
+}
+
+export function setLastSyncAt(iso: string) {
+  db.runSync("UPDATE sync_state SET lastSyncAt = ? WHERE id = 1", [iso]);
+}

@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 import { setInitialSyncCompleted } from "../../data/db/repositories/syncStateRepo";
-
+import { initialSync } from "../../services/sync/initialSync";
 export default function FirstSyncRequiredScreen() {
   const { t } = useTranslation();
 
@@ -12,19 +12,9 @@ export default function FirstSyncRequiredScreen() {
         {t("common.needInternetFirstSync")}
       </Text>
 
-      {/* временно: кнопка “симулировать первую синхронизацию”
-         потом заменим на реальный sync из Firebase */}
-      <Pressable
-        onPress={() => setInitialSyncCompleted(true)}
-        style={{
-          paddingVertical: 12,
-          paddingHorizontal: 16,
-          borderRadius: 10,
-          backgroundColor: "black"
-        }}
-      >
-        <Text style={{ color: "white" }}>{t("common.retry")}</Text>
-      </Pressable>
+<Pressable onPress={() => initialSync()}>
+    </Pressable>
+
     </View>
   );
 }
