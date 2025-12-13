@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Pressable, Alert, ScrollView } from "react-native";
 import { useTranslation } from "react-i18next";
-import { sendFeedback } from "../../services/feedback/sendFeedback";
+import { enqueueFeedback } from "../../data/db/repositories/feedbackOutboxRepo";
+import { flushFeedbackOutbox } from "../../data/db/repositories/flushFeedbackOutbox";
+
 
 export default function AboutScreen() {
   const { i18n } = useTranslation();
@@ -23,28 +25,23 @@ export default function AboutScreen() {
 
     setSending(true);
     try {
-      await sendFeedback({ message: msg, contact, language: lang });
+      enqueueFeedback({ message: msg, contact, language: lang });
+
+      const res = await flushFeedbackOutbox();
 
       Alert.alert(
         lang === "ru" ? "Готово" : "მზადაა",
-        lang === "ru" ? "Сообщение отправлено" : "შეტყობინება გაიგზავნა"
+        res.skipped
+          ? (lang === "ru"
+              ? "Сообщение сохранено и будет отправлено при появлении интернета."
+              : "შეტყობინება შენახულია და გაიგზავნება ინტერნეტის გამოჩენისას.")
+          : (lang === "ru"
+              ? "Сообщение отправлено."
+              : "შეტყობინება გაიგზავნა.")
       );
 
       setMessage("");
       setContact("");
-    } catch (e: any) {
-      const isNoInternet = e?.message === "NO_INTERNET";
-
-      Alert.alert(
-        lang === "ru" ? "Не отправлено" : "ვერ გაიგზავნა",
-        isNoInternet
-          ? (lang === "ru"
-              ? "Нет интернета. Отправка возможна только онлайн."
-              : "ინტერნეტი არ არის. გაგზავნა შესაძლებელია მხოლოდ ონლაინ.")
-          : (lang === "ru"
-              ? "Ошибка отправки. Попробуйте позже."
-              : "გაგზავნის შეცდომა. სცადეთ მოგვიანებით.")
-      );
     } finally {
       setSending(false);
     }

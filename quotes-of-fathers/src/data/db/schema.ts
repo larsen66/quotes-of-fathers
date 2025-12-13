@@ -60,6 +60,21 @@ export function initDb() {
       quoteId TEXT PRIMARY KEY NOT NULL,
       addedAt TEXT NOT NULL
     );
+CREATE TABLE IF NOT EXISTS feedback_outbox (
+    id TEXT PRIMARY KEY NOT NULL,
+    message TEXT NOT NULL,
+    contact TEXT,
+    language TEXT NOT NULL,
+    createdAt TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',   -- pending | sent | failed
+    lastError TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_feedback_outbox_status ON feedback_outbox(status);
+CREATE INDEX IF NOT EXISTS idx_feedback_outbox_createdAt ON feedback_outbox(createdAt);
+
+
+
     `);
   } catch (error) {
     console.error("Error initializing database:", error);

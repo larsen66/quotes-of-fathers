@@ -33,9 +33,9 @@ export default function QuoteScreen() {
   const source =
     lang === "ru" ? data.source_ru ?? data.source_ka : data.source_ka;
 
-  async function onShare() {
+  async function onShare(text: string, author: string) {
     await Share.share({
-      message: `${quoteText}\n\n— ${fatherName}`
+      message: `${text}\n\n— ${author}`,
     });
   }
 
@@ -97,7 +97,7 @@ export default function QuoteScreen() {
         </Pressable>
 
         <Pressable
-          onPress={onShare}
+          onPress={() => onShare(quoteText, fatherName)}
           style={{ flex: 1, padding: 12, borderRadius: 12, borderWidth: 1 }}
         >
           <Text style={{ textAlign: "center", fontSize: 16 }}>

@@ -6,6 +6,7 @@ import QuoteScreen from "../screens/QuoteScreen";
 import { initDb } from "../../data/db/schema";
 import { isInitialSyncCompleted } from "../../data/db/repositories/syncStateRepo";
 import FatherProfileScreen from "../screens/FatherProfileScreen";
+import { flushFeedbackOutbox } from "../../data/db/repositories/flushFeedbackOutbox"; 
 
 export type RootStackParamList = {
     Tabs: undefined;
@@ -24,6 +25,7 @@ export default function RootNavigator() {
   useEffect(() => {
     try {
       initDb();
+      flushFeedbackOutbox();
       const syncCompleted = isInitialSyncCompleted();
       setDone(syncCompleted);
     } catch (error) {
