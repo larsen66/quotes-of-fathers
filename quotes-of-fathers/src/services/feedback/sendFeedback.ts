@@ -1,9 +1,8 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import * as Network from "expo-network";
 import * as Application from "expo-application";
 import { Platform } from "react-native";
 
-import { db } from "../firebase/firebase";
+import { supabase } from "../supabase/supabase";
 
 type SendFeedbackInput = {
   message: string;
@@ -17,14 +16,19 @@ export async function sendFeedback(input: SendFeedbackInput) {
     throw new Error("NO_INTERNET");
   }
 
-  const payload = {
+  const { error } = await supabase.from("feedback").insert({
     message: input.message.trim(),
     contact: input.contact?.trim() || null,
     language: input.language,
-    platform: Platform.OS,
-    appVersion: Application.nativeApplicationVersion ?? Application.applicationVersion ?? "unknown",
-    createdAt: serverTimestamp()
-  };
+    platform: Platform.OS as "ios" | "android",
+    app_version:
+      Application.nativeApplicationVersion ??
+      Application.applicationVersion ??
+      "unknown",
+  });
 
-  await addDoc(collection(db, "feedback"), payload);
+  if (error) {
+    console.error("Error sending feedback:", error);
+    throw error;
+  }
 }

@@ -6,7 +6,7 @@ import { flushFeedbackOutbox } from "../../data/db/repositories/flushFeedbackOut
 
 
 export default function AboutScreen() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const lang = (i18n.language === "ru" ? "ru" : "ka") as "ka" | "ru";
 
   const [message, setMessage] = useState("");
@@ -17,8 +17,8 @@ export default function AboutScreen() {
     const msg = message.trim();
     if (!msg) {
       Alert.alert(
-        lang === "ru" ? "Ошибка" : "შეცდომა",
-        lang === "ru" ? "Введите сообщение" : "შეიყვანეთ შეტყობინება"
+        t('about.errorTitle'),
+        t('about.errorMessage')
       );
       return;
     }
@@ -30,14 +30,10 @@ export default function AboutScreen() {
       const res = await flushFeedbackOutbox();
 
       Alert.alert(
-        lang === "ru" ? "Готово" : "მზადაა",
+        t('about.doneTitle'),
         res.skipped
-          ? (lang === "ru"
-              ? "Сообщение сохранено и будет отправлено при появлении интернета."
-              : "შეტყობინება შენახულია და გაიგზავნება ინტერნეტის გამოჩენისას.")
-          : (lang === "ru"
-              ? "Сообщение отправлено."
-              : "შეტყობინება გაიგზავნა.")
+          ? t('about.messageSaved')
+          : t('about.messageSent')
       );
 
       setMessage("");
@@ -50,25 +46,23 @@ export default function AboutScreen() {
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
       <Text style={{ fontSize: 22, fontWeight: "700" }}>
-        {lang === "ru" ? "О нас" : "ჩვენს შესახებ"}
+        {t('about.title')}
       </Text>
 
       <Text style={{ fontSize: 15, lineHeight: 22, opacity: 0.9 }}>
-        {lang === "ru"
-          ? "Приложение для чтения духовных цитат святых отцов. Работает офлайн после первой загрузки."
-          : "სულიერი ციტატების წასაკითხად შექმნილი აპლიკაცია. პირველადი ჩამოტვირთვის შემდეგ მუშაობს ოფლაინ."}
+        {t('about.description')}
       </Text>
 
       <View style={{ height: 1, backgroundColor: "rgba(0,0,0,0.12)", marginVertical: 8 }} />
 
       <Text style={{ fontSize: 18, fontWeight: "700" }}>
-        {lang === "ru" ? "Обратная связь" : "უკუკავშირი"}
+        {t('about.feedback')}
       </Text>
 
       <TextInput
         value={message}
         onChangeText={setMessage}
-        placeholder={lang === "ru" ? "Ваше сообщение..." : "თქვენი შეტყობინება..."}
+        placeholder={t('about.messagePlaceholder')}
         multiline
         style={{ borderWidth: 1, borderRadius: 12, padding: 12, minHeight: 120, textAlignVertical: "top" }}
       />
@@ -76,7 +70,7 @@ export default function AboutScreen() {
       <TextInput
         value={contact}
         onChangeText={setContact}
-        placeholder={lang === "ru" ? "Контакт (email или телефон) — необязательно" : "კონტაქტი (email ან ტელ.) — სურვილისამებრ"}
+        placeholder={t('about.contactPlaceholder')}
         style={{ borderWidth: 1, borderRadius: 12, padding: 12 }}
       />
 
@@ -86,9 +80,7 @@ export default function AboutScreen() {
         style={{ padding: 14, borderRadius: 12, backgroundColor: "black", opacity: sending ? 0.6 : 1 }}
       >
         <Text style={{ color: "white", textAlign: "center", fontSize: 16 }}>
-          {sending
-            ? (lang === "ru" ? "Отправка..." : "იგზავნება...")
-            : (lang === "ru" ? "Отправить" : "გაგზავნა")}
+          {sending ? t('about.sending') : t('about.send')}
         </Text>
       </Pressable>
     </ScrollView>

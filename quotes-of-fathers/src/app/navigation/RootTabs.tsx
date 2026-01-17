@@ -1,6 +1,7 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import LatestScreen from "../screens/LatestScreen";
 import FavoritesScreen from "../screens/FavoritesScreen";
@@ -11,6 +12,8 @@ import AboutScreen from "../screens/AboutScreen";
 const Tab = createBottomTabNavigator();
 
 export default function RootTabs() {
+  const { t } = useTranslation();
+
   return (
     <Tab.Navigator
       screenOptions={{
@@ -22,7 +25,7 @@ export default function RootTabs() {
         name="Home"
         component={LatestScreen}
         options={{
-          title: "Последние",
+          title: t("tabs.latest"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home-outline" size={size} color={color} />
           ),
@@ -32,7 +35,7 @@ export default function RootTabs() {
         name="Favorites"
         component={FavoritesScreen}
         options={{
-          title: "Избранные",
+          title: t("tabs.favorites"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="heart" size={size} color={color} />
           ),
@@ -42,7 +45,7 @@ export default function RootTabs() {
         name="Fathers"
         component={FathersScreen}
         options={{
-          title: "Все отцы",
+          title: t("tabs.fathers"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
@@ -52,7 +55,7 @@ export default function RootTabs() {
         name="Settings"
         component={SettingsScreen}
         options={{
-          title: "Настройки",
+          title: t("tabs.settings"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings-outline" size={size} color={color} />
           ),
@@ -62,7 +65,7 @@ export default function RootTabs() {
         name="About"
         component={AboutScreen}
         options={{
-          title: "О нас",
+          title: t("tabs.about"),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="information-circle-outline" size={size} color={color} />
           ),

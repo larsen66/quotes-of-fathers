@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { getSettings, updateSettings } from "../../data/db/repositories/settingsRepo";
-import { seedDemoData } from "../../data/db/seedTestData";
 import * as Notifications from "expo-notifications";
 import {
   cancelAllScheduled,
@@ -26,14 +25,14 @@ function dateToHHMM(d: Date) {
 }
 
 const SOUND_OPTIONS = [
-  { id: "default", labelRu: "Стандартный", labelKa: "სტანდარტული" },
-  { id: "bell", labelRu: "Афонское било", labelKa: "ათონის ზარი" },
-  { id: "soft", labelRu: "Тихий", labelKa: "მშვიდი" }
+  { id: "default", translationKey: "settings.soundDefault" },
+  { id: "bell", translationKey: "settings.soundBell" },
+  { id: "soft", translationKey: "settings.soundSoft" }
 ];
 
 
 export default function SettingsScreen() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const lang = (i18n.language === "ru" ? "ru" : "ka") as "ka" | "ru";
 
   const initial = useMemo(() => getSettings(), []);
@@ -42,7 +41,14 @@ export default function SettingsScreen() {
   const [weekendTime, setWeekendTime] = useState(initial.weekendTime);
   const [soundId, setSoundId] = useState(initial.soundId);
   const [language, setLanguage] = useState<"ka" | "ru">(initial.language);
-  const [isResettingData, setIsResettingData] = useState(false);
+
+  // Мгновенная смена языка при выборе
+  const handleLanguageChange = async (newLanguage: "ka" | "ru") => {
+    setLanguage(newLanguage);
+    await i18n.changeLanguage(newLanguage);
+    // Сохраняем в базу данных сразу
+    updateSettings({ language: newLanguage });
+  };
 
   async function onSave() {
     try {
@@ -52,28 +58,22 @@ export default function SettingsScreen() {
         const granted = await requestNotificationPermission();
         if (!granted) {
           Alert.alert(
-            lang === "ru" ? "Разрешение" : "ნებართვა",
-            lang === "ru"
-              ? "Разреши уведомления в настройках телефона"
-              : "ჩართე შეტყობინებები ტელეფონის პარამეტრებში"
+            t('settings.permission'),
+            t('settings.permissionMessage')
           );
           return;
         }
       }
 
-      // 1) сохраняем в SQLite
-      const next = updateSettings({
-        language,
+      // 1) сохраняем настройки уведомлений в SQLite (язык уже сохранен при выборе)
+      updateSettings({
         notificationsEnabled: notificationsEnabled ? 1 : 0,
         weekdayTime,
         weekendTime,
         soundId
       });
 
-      // 2) применяем язык сразу
-      await i18n.changeLanguage(next.language);
-
-      // 3) обновляем расписание уведомлений
+      // 2) обновляем расписание уведомлений
       await cancelAllScheduled();
       if (notificationsEnabled) {
         await scheduleOpenAppNotifications({
@@ -88,73 +88,27 @@ export default function SettingsScreen() {
         
         if (scheduled.length === 0) {
           Alert.alert(
-            lang === "ru" ? "Предупреждение" : "გაფრთხილება",
-            lang === "ru" 
-              ? "Уведомления не были запланированы. Проверьте разрешения и настройки устройства."
-              : "შეტყობინებები არ დაგეგმილა. შეამოწმეთ ნებართვები და მოწყობილობის პარამეტრები."
+            t('settings.warning'),
+            t('settings.notificationsNotScheduled')
           );
         } else {
           Alert.alert(
-            lang === "ru" ? "Готово" : "მზადაა", 
-            lang === "ru" 
-              ? `Настройки сохранены. Запланировано ${scheduled.length} уведомлений.`
-              : `პარამეტრები შენახულია. დაგეგმილია ${scheduled.length} შეტყობინება.`
+            t('common.done'),
+            t('settings.settingsSavedWithCount', { count: scheduled.length })
           );
         }
       } else {
-        Alert.alert(lang === "ru" ? "Готово" : "მზადაა", lang === "ru" ? "Настройки сохранены" : "პარამეტრები შენახულია");
+        Alert.alert(t('common.done'), t('settings.settingsSaved'));
       }
     } catch (error) {
       console.error("Error saving settings:", error);
       Alert.alert(
-        lang === "ru" ? "Ошибка" : "შეცდომა",
-        lang === "ru" 
-          ? `Ошибка при сохранении: ${error instanceof Error ? error.message : String(error)}`
-          : `შენახვის შეცდომა: ${error instanceof Error ? error.message : String(error)}`
+        t('common.error'),
+        t('settings.saveError', { error: error instanceof Error ? error.message : String(error) })
       );
     }
   }
 
-  async function onResetDemoData() {
-    Alert.alert(
-      lang === "ru" ? "Обновить данные" : "მონაცემების განახლება",
-      lang === "ru" 
-        ? "Это пересоздаст демо-данные с новыми изображениями. Продолжить?"
-        : "ეს გადააქმნის დემო-მონაცემებს ახალი სურათებით. გავაგრძელოთ?",
-      [
-        {
-          text: lang === "ru" ? "Отмена" : "გაუქმება",
-          style: "cancel"
-        },
-        {
-          text: lang === "ru" ? "Обновить" : "განახლება",
-          style: "destructive",
-          onPress: async () => {
-            setIsResettingData(true);
-            try {
-              await seedDemoData();
-              Alert.alert(
-                lang === "ru" ? "Готово" : "მზადაა",
-                lang === "ru" 
-                  ? "Данные обновлены. Перезапустите приложение или перейдите на другую вкладку и вернитесь обратно."
-                  : "მონაცემები განახლებულია. გადატვირთეთ აპლიკაცია ან გადადით სხვა ჩანართზე და დაბრუნდით."
-              );
-            } catch (error) {
-              console.error("Error resetting demo data:", error);
-              Alert.alert(
-                lang === "ru" ? "Ошибка" : "შეცდომა",
-                lang === "ru" 
-                  ? `Ошибка при обновлении данных: ${error instanceof Error ? error.message : String(error)}`
-                  : `მონაცემების განახლების შეცდომა: ${error instanceof Error ? error.message : String(error)}`
-              );
-            } finally {
-              setIsResettingData(false);
-            }
-          }
-        }
-      ]
-    );
-  }
 
   const [soundPickerOpen, setSoundPickerOpen] = useState(false);
   const [timePickerOpen, setTimePickerOpen] = useState<"weekday" | "weekend" | null>(null);
@@ -162,8 +116,8 @@ export default function SettingsScreen() {
 
   const selectedSoundLabel = useMemo(() => {
     const option = SOUND_OPTIONS.find(opt => opt.id === soundId);
-    return option ? (lang === "ru" ? option.labelRu : option.labelKa) : "";
-  }, [soundId, lang]);
+    return option ? t(option.translationKey) : "";
+  }, [soundId, t]);
 
   const handleTimePickerOpen = (type: "weekday" | "weekend") => {
     if (!notificationsEnabled) return;
@@ -205,13 +159,93 @@ export default function SettingsScreen() {
       {/* Header */}
       <View style={{ paddingTop: 20, paddingBottom: 16, alignItems: "center" }}>
         <Text style={{ fontSize: 20, fontWeight: "600" }}>
-          {lang === "ru" ? "Настройки" : "პარამეტრები"}
+          {t('settings.title')}
         </Text>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         {/* Settings List */}
         <View style={{ marginTop: 8 }}>
+          {/* Язык приложения */}
+          <View style={{ marginBottom: 20 }}>
+            <Text style={{ 
+              fontSize: 14, 
+              fontWeight: "600", 
+              marginBottom: 12,
+              color: "#666",
+              paddingHorizontal: 4
+            }}>
+              {t('settings.language')}
+            </Text>
+            <View style={{ 
+              flexDirection: "row", 
+              gap: 12,
+              backgroundColor: "#F5F5F5",
+              padding: 4,
+              borderRadius: 12
+            }}>
+              <Pressable
+                onPress={() => handleLanguageChange("ka")}
+                style={{ 
+                  flex: 1,
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  borderRadius: 10,
+                  backgroundColor: language === "ka" ? "white" : "transparent",
+                  alignItems: "center",
+                  shadowColor: language === "ka" ? "#000" : "transparent",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: language === "ka" ? 0.1 : 0,
+                  shadowRadius: 4,
+                  elevation: language === "ka" ? 2 : 0
+                }}
+              >
+                <Text style={{ 
+                  fontSize: 16, 
+                  fontWeight: language === "ka" ? "600" : "400",
+                  color: language === "ka" ? "#000" : "#666"
+                }}>
+                  🇬🇪 ქართული
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleLanguageChange("ru")}
+                style={{ 
+                  flex: 1,
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  borderRadius: 10,
+                  backgroundColor: language === "ru" ? "white" : "transparent",
+                  alignItems: "center",
+                  shadowColor: language === "ru" ? "#000" : "transparent",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: language === "ru" ? 0.1 : 0,
+                  shadowRadius: 4,
+                  elevation: language === "ru" ? 2 : 0
+                }}
+              >
+                <Text style={{ 
+                  fontSize: 16, 
+                  fontWeight: language === "ru" ? "600" : "400",
+                  color: language === "ru" ? "#000" : "#666"
+                }}>
+                  🇷🇺 Русский
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Уведомления */}
+          <Text style={{ 
+            fontSize: 14, 
+            fontWeight: "600", 
+            marginBottom: 12,
+            color: "#666",
+            paddingHorizontal: 4
+          }}>
+            {t('settings.notifications')}
+          </Text>
+
           {/* Включить рассылку */}
           <View style={{ 
             flexDirection: "row", 
@@ -222,7 +256,7 @@ export default function SettingsScreen() {
             borderBottomColor: "#E0E0E0"
           }}>
             <Text style={{ fontSize: 16 }}>
-              {lang === "ru" ? "Включить рассылку" : "გამოწერის ჩართვა"}
+              {t('settings.enableNotifications')}
             </Text>
             <Switch
               value={notificationsEnabled}
@@ -245,7 +279,7 @@ export default function SettingsScreen() {
             }}
           >
             <Text style={{ fontSize: 16 }}>
-              {lang === "ru" ? "Оповещения в будни" : "შეტყობინებები სამუშაო დღეებში"}
+              {t('settings.weekdayTime')}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <Text style={{ fontSize: 16 }}>{weekdayTime}</Text>
@@ -268,7 +302,7 @@ export default function SettingsScreen() {
             }}
           >
             <Text style={{ fontSize: 16 }}>
-              {lang === "ru" ? "Оповещения в выходные" : "შეტყობინებები შაბათ-კვირას"}
+              {t('settings.weekendTime')}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <Text style={{ fontSize: 16 }}>{weekendTime}</Text>
@@ -291,7 +325,7 @@ export default function SettingsScreen() {
             }}
           >
             <Text style={{ fontSize: 16 }}>
-              {lang === "ru" ? "Мелодия" : "მელოდია"}
+              {t('settings.sound')}
             </Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
               <Text style={{ fontSize: 16 }}>{selectedSoundLabel}</Text>
@@ -301,67 +335,25 @@ export default function SettingsScreen() {
         </View>
 
         {/* Сохранить */}
-        <View style={{ marginTop: 32, marginBottom: 20, alignItems: "center" }}>
+        <View style={{ marginTop: 32, marginBottom: 40, alignItems: "center" }}>
           <Pressable
             onPress={onSave}
             style={{ 
-              paddingVertical: 14, 
+              paddingVertical: 16, 
               paddingHorizontal: 48,
-              borderRadius: 8, 
-              backgroundColor: "#E0E0E0",
-              minWidth: 200,
-              alignItems: "center"
-            }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: "600" }}>
-              {lang === "ru" ? "Сохранить" : "შენახვა"}
-            </Text>
-          </Pressable>
-        </View>
-
-        {/* Язык (скрыто внизу) */}
-        <View style={{ marginTop: 20, marginBottom: 20, opacity: 0.7 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 10 }}>
-            {lang === "ru" ? "Язык" : "ენა"}
-          </Text>
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <Pressable
-              onPress={() => setLanguage("ka")}
-              style={{ padding: 10, borderRadius: 10, borderWidth: 1, flex: 1, opacity: language === "ka" ? 1 : 0.5 }}
-            >
-              <Text style={{ textAlign: "center" }}>ქართული</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setLanguage("ru")}
-              style={{ padding: 10, borderRadius: 10, borderWidth: 1, flex: 1, opacity: language === "ru" ? 1 : 0.5 }}
-            >
-              <Text style={{ textAlign: "center" }}>Русский</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Обновить демо-данные (скрыто внизу) */}
-        <View style={{ marginTop: 20, marginBottom: 40, opacity: 0.7 }}>
-          <Text style={{ fontSize: 16, fontWeight: "600", marginBottom: 10 }}>
-            {lang === "ru" ? "Разработка" : "განვითარება"}
-          </Text>
-          <Pressable
-            onPress={onResetDemoData}
-            disabled={isResettingData}
-            style={{ 
-              padding: 14, 
               borderRadius: 12, 
-              backgroundColor: isResettingData ? "#999" : "#4CAF50",
-              minHeight: 50,
-              justifyContent: "center",
+              backgroundColor: "#4CAF50",
+              minWidth: 200,
               alignItems: "center",
-              opacity: isResettingData ? 0.6 : 1
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 4,
+              elevation: 3
             }}
           >
-            <Text style={{ color: "white", textAlign: "center", fontSize: 16, fontWeight: "600" }}>
-              {isResettingData 
-                ? (lang === "ru" ? "Обновление..." : "განახლება...")
-                : (lang === "ru" ? "Обновить демо-данные" : "დემო-მონაცემების განახლება")}
+            <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
+              {t('settings.save')}
             </Text>
           </Pressable>
         </View>
@@ -405,12 +397,12 @@ export default function SettingsScreen() {
                   <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                     <Text style={{ fontSize: 18, fontWeight: "600" }}>
                       {timePickerOpen === "weekday"
-                        ? (lang === "ru" ? "Оповещения в будни" : "შეტყობინებები სამუშაო დღეებში")
-                        : (lang === "ru" ? "Оповещения в выходные" : "შეტყობინებები შაბათ-კვირას")}
+                        ? t('settings.weekdayTime')
+                        : t('settings.weekendTime')}
                     </Text>
                     <Pressable onPress={handleTimeConfirm} style={{ padding: 8 }}>
                       <Text style={{ fontSize: 16, fontWeight: "600" }}>
-                        {lang === "ru" ? "Готово" : "მზადაა"}
+                        {t('common.done')}
                       </Text>
                     </Pressable>
                   </View>
@@ -456,10 +448,10 @@ export default function SettingsScreen() {
             onPress={(e) => e.stopPropagation()}
           >
             <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 16, textAlign: "center" }}>
-              {lang === "ru" ? "Выберите мелодию" : "აირჩიეთ მელოდია"}
+              {t('settings.selectSound')}
             </Text>
             {SOUND_OPTIONS.map(opt => {
-              const label = lang === "ru" ? opt.labelRu : opt.labelKa;
+              const label = t(opt.translationKey);
               const active = soundId === opt.id;
               return (
                 <Pressable
@@ -487,7 +479,7 @@ export default function SettingsScreen() {
               style={{ marginTop: 12, paddingVertical: 12, alignItems: "center" }}
             >
               <Text style={{ fontSize: 16, fontWeight: "600" }}>
-                {lang === "ru" ? "Отмена" : "გაუქმება"}
+                {t('common.cancel')}
               </Text>
             </Pressable>
           </Pressable>

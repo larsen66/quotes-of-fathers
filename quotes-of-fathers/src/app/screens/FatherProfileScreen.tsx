@@ -12,7 +12,7 @@ import { isFavorite, toggleFavorite } from "../../data/db/repositories/favorites
 type RouteProps = RouteProp<RootStackParamList, "FatherProfile">;
 
 export default function FatherProfileScreen() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const lang = (i18n.language === "ru" ? "ru" : "ka") as "ka" | "ru";
 
   const route = useRoute<RouteProps>();
@@ -40,7 +40,7 @@ export default function FatherProfileScreen() {
           onPress={() => navigation.goBack()}
           style={{ alignSelf: "flex-start", paddingVertical: 8, paddingHorizontal: 12 }}
         >
-          <Text style={{ fontSize: 16, fontWeight: "500" }}>← {lang === "ru" ? "Назад" : "უკან"}</Text>
+          <Text style={{ fontSize: 16, fontWeight: "500" }}>← {t('common.back')}</Text>
         </Pressable>
       </View>
 
@@ -57,7 +57,7 @@ export default function FatherProfileScreen() {
           <Text style={{ fontSize: 22, fontWeight: "700" }}>{fatherName}</Text>
 
           <Text style={{ marginTop: 6, fontSize: 14, opacity: 0.7 }}>
-            {lang === "ru" ? `Всего цитат: ${count}` : `ციტატების რაოდენობა: ${count}`}
+            {t('fathers.quotesCount', { count })}
           </Text>
 
           {!!fatherBio && (

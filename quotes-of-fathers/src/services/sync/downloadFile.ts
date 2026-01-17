@@ -1,11 +1,15 @@
-import * as FileSystem from "expo-file-system";
+import { downloadAsync, documentDirectory } from "expo-file-system/legacy";
 
 export async function downloadFile(
   url: string,
   localName: string
 ): Promise<string> {
-  const localPath = FileSystem.documentDirectory + localName;
+  if (!documentDirectory) {
+    throw new Error("Document directory is not available");
+  }
+  
+  const localPath = documentDirectory + localName;
 
-  const result = await FileSystem.downloadAsync(url, localPath);
+  const result = await downloadAsync(url, localPath);
   return result.uri;
 }

@@ -50,15 +50,13 @@ export async function incrementalSync() {
 
     db.runSync(
       `INSERT OR REPLACE INTO quotes
-       (id, fatherId, text_ka, text_ru, source_ka, source_ru, quoteDate, isPublished, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (id, fatherId, text_ka, text_ru, quoteDate, isPublished, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         q.id,
         q.fatherId,
         q.text?.ka ?? "",
         q.text?.ru ?? null,
-        q.source?.ka ?? null,
-        q.source?.ru ?? null,
         q.quoteDate ?? null,
         1,
         q.createdAt,

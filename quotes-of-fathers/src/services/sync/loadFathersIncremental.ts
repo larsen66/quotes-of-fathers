@@ -1,12 +1,16 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebase/firebase";
+import { supabase } from "../supabase/supabase";
+import { toServerFather, ServerFather } from "../supabase/types";
 
-export async function loadFathersIncremental(lastSyncAt: string) {
-  const q = query(
-    collection(db, "fathers"),
-    where("updatedAt", ">", lastSyncAt)
-  );
+export async function loadFathersIncremental(lastSyncAt: string): Promise<ServerFather[]> {
+  const { data, error } = await supabase
+    .from("fathers")
+    .select("*")
+    .gt("updated_at", lastSyncAt);
 
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (error) {
+    console.error("Error loading fathers incrementally:", error);
+    throw error;
+  }
+
+  return (data ?? []).map(toServerFather);
 }

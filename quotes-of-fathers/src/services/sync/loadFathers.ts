@@ -1,15 +1,17 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebase/firebase";
+import { supabase } from "../supabase/supabase";
+import { toServerFather, ServerFather } from "../supabase/types";
 
-export async function loadFathers() {
-  const q = query(
-    collection(db, "fathers"),
-    where("deleted", "!=", true)
-  );
+export async function loadFathers(): Promise<ServerFather[]> {
+  const { data, error } = await supabase
+    .from("fathers")
+    .select("*")
+    .eq("deleted", false)
+    .order("order", { ascending: true, nullsFirst: false });
 
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
+  if (error) {
+    console.error("Error loading fathers:", error);
+    throw error;
+  }
+
+  return (data ?? []).map(toServerFather);
 }

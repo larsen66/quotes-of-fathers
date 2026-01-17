@@ -10,7 +10,7 @@ import { isFavorite, toggleFavorite } from "../../data/db/repositories/favorites
 type RouteProps = RouteProp<RootStackParamList, "Quote">;
 
 export default function QuoteScreen() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const lang = (i18n.language === "ru" ? "ru" : "ka") as "ka" | "ru";
 
   const route = useRoute<RouteProps>();
@@ -30,9 +30,6 @@ export default function QuoteScreen() {
   const quoteText =
     lang === "ru" ? (data.text_ru ?? data.text_ka) : data.text_ka;
 
-  const source =
-    lang === "ru" ? data.source_ru ?? data.source_ka : data.source_ka;
-
   async function onShare(text: string, author: string) {
     await Share.share({
       message: `${text}\n\n— ${author}`,
@@ -47,7 +44,7 @@ export default function QuoteScreen() {
           onPress={() => navigation.goBack()}
           style={{ alignSelf: "flex-start", paddingVertical: 8, paddingHorizontal: 12 }}
         >
-          <Text style={{ fontSize: 16, fontWeight: "500" }}>← {lang === "ru" ? "Назад" : "უკან"}</Text>
+          <Text style={{ fontSize: 16, fontWeight: "500" }}>← {t('common.back')}</Text>
         </Pressable>
       </View>
 
@@ -75,13 +72,6 @@ export default function QuoteScreen() {
         {quoteText}
       </Text>
 
-      {/* Источник */}
-      {source && (
-        <Text style={{ fontSize: 14, opacity: 0.6, marginBottom: 20 }}>
-          {source}
-        </Text>
-      )}
-
       {/* Кнопки */}
       <View style={{ flexDirection: "row", gap: 12 }}>
         <Pressable
@@ -92,7 +82,7 @@ export default function QuoteScreen() {
           style={{ flex: 1, padding: 12, borderRadius: 12, borderWidth: 1 }}
         >
           <Text style={{ textAlign: "center", fontSize: 16 }}>
-            {isFav ? "♥ Убрать из избранного" : "♡ В избранное"}
+            {isFav ? t('quote.removeFromFavorites') : t('quote.addToFavorites')}
           </Text>
         </Pressable>
 
@@ -101,7 +91,7 @@ export default function QuoteScreen() {
           style={{ flex: 1, padding: 12, borderRadius: 12, borderWidth: 1 }}
         >
           <Text style={{ textAlign: "center", fontSize: 16 }}>
-            Поделиться
+            {t('quote.share')}
           </Text>
         </Pressable>
       </View>

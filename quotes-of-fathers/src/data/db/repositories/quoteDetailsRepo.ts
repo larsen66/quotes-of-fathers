@@ -12,9 +12,6 @@ export type QuoteDetailsRow = {
   text_ka: string;
   text_ru: string | null;
 
-  source_ka: string | null;
-  source_ru: string | null;
-
   quoteDate: string | null;
 };
 
@@ -30,8 +27,6 @@ export function getQuoteById(quoteId: string): QuoteDetailsRow | null {
       f.profileLocalPath as fatherProfileLocalPath,
       q.text_ka,
       q.text_ru,
-      q.source_ka,
-      q.source_ru,
       q.quoteDate
     FROM quotes q
     JOIN fathers f ON f.id = q.fatherId

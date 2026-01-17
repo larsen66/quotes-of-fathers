@@ -45,8 +45,6 @@ export function initDb() {
       fatherId TEXT NOT NULL,
       text_ka TEXT NOT NULL,
       text_ru TEXT,
-      source_ka TEXT,
-      source_ru TEXT,
       quoteDate TEXT,
       isPublished INTEGER NOT NULL DEFAULT 1,
       createdAt TEXT NOT NULL,

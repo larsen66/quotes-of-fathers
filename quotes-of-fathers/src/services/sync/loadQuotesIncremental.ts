@@ -1,12 +1,16 @@
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../firebase/firebase";
+import { supabase } from "../supabase/supabase";
+import { toServerQuote, ServerQuote } from "../supabase/types";
 
-export async function loadQuotesIncremental(lastSyncAt: string) {
-  const q = query(
-    collection(db, "quotes"),
-    where("updatedAt", ">", lastSyncAt)
-  );
+export async function loadQuotesIncremental(lastSyncAt: string): Promise<ServerQuote[]> {
+  const { data, error } = await supabase
+    .from("quotes")
+    .select("*")
+    .gt("updated_at", lastSyncAt);
 
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (error) {
+    console.error("Error loading quotes incrementally:", error);
+    throw error;
+  }
+
+  return (data ?? []).map(toServerQuote);
 }
