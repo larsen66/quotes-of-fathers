@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Pressable, Alert, ScrollView, Switch, Modal, Platform } from "react-native";
+import { View, Text, Pressable, Alert, ScrollView, Switch, Modal, Platform, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -10,6 +11,10 @@ import {
   requestNotificationPermission,
   scheduleOpenAppNotifications
 } from "../../services/notifications/notifications";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { colors, spacing, borderRadius } from "../../ui/theme";
+import type { RootStackParamList } from "../navigation/types";
 
 function hhmmToDate(hhmm: string) {
   const [h, m] = hhmm.split(":").map(n => parseInt(n, 10));
@@ -33,6 +38,7 @@ const SOUND_OPTIONS = [
 
 export default function SettingsScreen() {
   const { i18n, t } = useTranslation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const lang = (i18n.language === "ru" ? "ru" : "ka") as "ka" | "ru";
 
   const initial = useMemo(() => getSettings(), []);
@@ -42,18 +48,14 @@ export default function SettingsScreen() {
   const [soundId, setSoundId] = useState(initial.soundId);
   const [language, setLanguage] = useState<"ka" | "ru">(initial.language);
 
-  // Мгновенная смена языка при выборе
   const handleLanguageChange = async (newLanguage: "ka" | "ru") => {
     setLanguage(newLanguage);
     await i18n.changeLanguage(newLanguage);
-    // Сохраняем в базу данных сразу
     updateSettings({ language: newLanguage });
   };
 
   async function onSave() {
     try {
-      console.log("Save button pressed");
-      
       if (notificationsEnabled) {
         const granted = await requestNotificationPermission();
         if (!granted) {
@@ -65,7 +67,6 @@ export default function SettingsScreen() {
         }
       }
 
-      // 1) сохраняем настройки уведомлений в SQLite (язык уже сохранен при выборе)
       updateSettings({
         notificationsEnabled: notificationsEnabled ? 1 : 0,
         weekdayTime,
@@ -73,7 +74,6 @@ export default function SettingsScreen() {
         soundId
       });
 
-      // 2) обновляем расписание уведомлений
       await cancelAllScheduled();
       if (notificationsEnabled) {
         await scheduleOpenAppNotifications({
@@ -81,11 +81,9 @@ export default function SettingsScreen() {
           weekendTime,
           soundId
         });
-        
-        // Проверяем, что уведомления запланированы
+
         const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-        console.log(`Scheduled ${scheduled.length} notifications`);
-        
+
         if (scheduled.length === 0) {
           Alert.alert(
             t('settings.warning'),
@@ -128,7 +126,7 @@ export default function SettingsScreen() {
 
   const handleTimeChange = (selectedDate: Date | undefined) => {
     if (!selectedDate || !timePickerOpen) return;
-    
+
     if (Platform.OS === "android") {
       const newTime = dateToHHMM(selectedDate);
       if (timePickerOpen === "weekday") {
@@ -155,208 +153,131 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      {/* Header */}
-      <View style={{ paddingTop: 20, paddingBottom: 16, alignItems: "center" }}>
-        <Text style={{ fontSize: 20, fontWeight: "600" }}>
-          {t('settings.title')}
-        </Text>
-      </View>
-
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
-        {/* Settings List */}
-        <View style={{ marginTop: 8 }}>
-          {/* Язык приложения */}
-          <View style={{ marginBottom: 20 }}>
-            <Text style={{ 
-              fontSize: 14, 
-              fontWeight: "600", 
-              marginBottom: 12,
-              color: "#666",
-              paddingHorizontal: 4
-            }}>
-              {t('settings.language')}
-            </Text>
-            <View style={{ 
-              flexDirection: "row", 
-              gap: 12,
-              backgroundColor: "#F5F5F5",
-              padding: 4,
-              borderRadius: 12
-            }}>
-              <Pressable
-                onPress={() => handleLanguageChange("ka")}
-                style={{ 
-                  flex: 1,
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                  borderRadius: 10,
-                  backgroundColor: language === "ka" ? "white" : "transparent",
-                  alignItems: "center",
-                  shadowColor: language === "ka" ? "#000" : "transparent",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: language === "ka" ? 0.1 : 0,
-                  shadowRadius: 4,
-                  elevation: language === "ka" ? 2 : 0
-                }}
-              >
-                <Text style={{ 
-                  fontSize: 16, 
-                  fontWeight: language === "ka" ? "600" : "400",
-                  color: language === "ka" ? "#000" : "#666"
-                }}>
-                  🇬🇪 ქართული
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => handleLanguageChange("ru")}
-                style={{ 
-                  flex: 1,
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                  borderRadius: 10,
-                  backgroundColor: language === "ru" ? "white" : "transparent",
-                  alignItems: "center",
-                  shadowColor: language === "ru" ? "#000" : "transparent",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: language === "ru" ? 0.1 : 0,
-                  shadowRadius: 4,
-                  elevation: language === "ru" ? 2 : 0
-                }}
-              >
-                <Text style={{ 
-                  fontSize: 16, 
-                  fontWeight: language === "ru" ? "600" : "400",
-                  color: language === "ru" ? "#000" : "#666"
-                }}>
-                  🇷🇺 Русский
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Уведомления */}
-          <Text style={{ 
-            fontSize: 14, 
-            fontWeight: "600", 
-            marginBottom: 12,
-            color: "#666",
-            paddingHorizontal: 4
-          }}>
-            {t('settings.notifications')}
+    <LinearGradient
+      colors={[colors.background.gradientStart, colors.background.gradientMiddle, colors.background.gradientEnd]}
+      style={styles.container}
+    >
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {/* Language Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>
+            {t('settings.language')}
           </Text>
-
-          {/* Включить рассылку */}
-          <View style={{ 
-            flexDirection: "row", 
-            justifyContent: "space-between", 
-            alignItems: "center",
-            paddingVertical: 16,
-            borderBottomWidth: 1,
-            borderBottomColor: "#E0E0E0"
-          }}>
-            <Text style={{ fontSize: 16 }}>
-              {t('settings.enableNotifications')}
-            </Text>
-            <Switch
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
-            />
+          <View style={styles.languageToggle}>
+            <Pressable
+              onPress={() => handleLanguageChange("ka")}
+              style={[
+                styles.languageButton,
+                language === "ka" && styles.languageButtonActive
+              ]}
+            >
+              <Text style={[
+                styles.languageButtonText,
+                language === "ka" && styles.languageButtonTextActive
+              ]}>
+                ქართული
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => handleLanguageChange("ru")}
+              style={[
+                styles.languageButton,
+                language === "ru" && styles.languageButtonActive
+              ]}
+            >
+              <Text style={[
+                styles.languageButtonText,
+                language === "ru" && styles.languageButtonTextActive
+              ]}>
+                Русский
+              </Text>
+            </Pressable>
           </View>
-
-          {/* Оповещения в будни */}
-          <Pressable
-            onPress={() => handleTimePickerOpen("weekday")}
-            disabled={!notificationsEnabled}
-            style={{ 
-              flexDirection: "row", 
-              justifyContent: "space-between", 
-              alignItems: "center",
-              paddingVertical: 16,
-              borderBottomWidth: 1,
-              borderBottomColor: "#E0E0E0",
-              opacity: notificationsEnabled ? 1 : 0.5
-            }}
-          >
-            <Text style={{ fontSize: 16 }}>
-              {t('settings.weekdayTime')}
-            </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Text style={{ fontSize: 16 }}>{weekdayTime}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
-            </View>
-          </Pressable>
-
-          {/* Оповещения в выходные */}
-          <Pressable
-            onPress={() => handleTimePickerOpen("weekend")}
-            disabled={!notificationsEnabled}
-            style={{ 
-              flexDirection: "row", 
-              justifyContent: "space-between", 
-              alignItems: "center",
-              paddingVertical: 16,
-              borderBottomWidth: 1,
-              borderBottomColor: "#E0E0E0",
-              opacity: notificationsEnabled ? 1 : 0.5
-            }}
-          >
-            <Text style={{ fontSize: 16 }}>
-              {t('settings.weekendTime')}
-            </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Text style={{ fontSize: 16 }}>{weekendTime}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
-            </View>
-          </Pressable>
-
-          {/* Мелодия */}
-          <Pressable
-            onPress={() => notificationsEnabled && setSoundPickerOpen(true)}
-            disabled={!notificationsEnabled}
-            style={{ 
-              flexDirection: "row", 
-              justifyContent: "space-between", 
-              alignItems: "center",
-              paddingVertical: 16,
-              borderBottomWidth: 1,
-              borderBottomColor: "#E0E0E0",
-              opacity: notificationsEnabled ? 1 : 0.5
-            }}
-          >
-            <Text style={{ fontSize: 16 }}>
-              {t('settings.sound')}
-            </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-              <Text style={{ fontSize: 16 }}>{selectedSoundLabel}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
-            </View>
-          </Pressable>
         </View>
 
-        {/* Сохранить */}
-        <View style={{ marginTop: 32, marginBottom: 40, alignItems: "center" }}>
-          <Pressable
-            onPress={onSave}
-            style={{ 
-              paddingVertical: 16, 
-              paddingHorizontal: 48,
-              borderRadius: 12, 
-              backgroundColor: "#4CAF50",
-              minWidth: 200,
-              alignItems: "center",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 3
-            }}
-          >
-            <Text style={{ fontSize: 16, fontWeight: "600", color: "white" }}>
+        {/* Notifications Section */}
+        <Text style={styles.sectionLabel}>
+          {t('settings.notifications')}
+        </Text>
+
+        {/* Enable notifications */}
+        <View style={styles.settingRow}>
+          <Text style={styles.settingLabel}>
+            {t('settings.enableNotifications')}
+          </Text>
+          <Switch
+            value={notificationsEnabled}
+            onValueChange={setNotificationsEnabled}
+            trackColor={{ false: colors.surface.tertiary, true: colors.gold.light }}
+            thumbColor={notificationsEnabled ? colors.gold.primary : colors.surface.white}
+          />
+        </View>
+
+        {/* Weekday time */}
+        <Pressable
+          onPress={() => handleTimePickerOpen("weekday")}
+          disabled={!notificationsEnabled}
+          style={[styles.settingRow, !notificationsEnabled && styles.settingRowDisabled]}
+        >
+          <Text style={styles.settingLabel}>
+            {t('settings.weekdayTime')}
+          </Text>
+          <View style={styles.settingValue}>
+            <Text style={styles.settingValueText}>{weekdayTime}</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.gold.light} />
+          </View>
+        </Pressable>
+
+        {/* Weekend time */}
+        <Pressable
+          onPress={() => handleTimePickerOpen("weekend")}
+          disabled={!notificationsEnabled}
+          style={[styles.settingRow, !notificationsEnabled && styles.settingRowDisabled]}
+        >
+          <Text style={styles.settingLabel}>
+            {t('settings.weekendTime')}
+          </Text>
+          <View style={styles.settingValue}>
+            <Text style={styles.settingValueText}>{weekendTime}</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.gold.light} />
+          </View>
+        </Pressable>
+
+        {/* Sound */}
+        <Pressable
+          onPress={() => notificationsEnabled && setSoundPickerOpen(true)}
+          disabled={!notificationsEnabled}
+          style={[styles.settingRow, !notificationsEnabled && styles.settingRowDisabled]}
+        >
+          <Text style={styles.settingLabel}>
+            {t('settings.sound')}
+          </Text>
+          <View style={styles.settingValue}>
+            <Text style={styles.settingValueText}>{selectedSoundLabel}</Text>
+            <Ionicons name="chevron-forward" size={20} color={colors.gold.light} />
+          </View>
+        </Pressable>
+
+        {/* Save Button */}
+        <View style={styles.saveButtonContainer}>
+          <Pressable onPress={onSave} style={styles.saveButton}>
+            <Text style={styles.saveButtonText}>
               {t('settings.save')}
             </Text>
           </Pressable>
         </View>
+
+        {/* Privacy Policy */}
+        <Pressable
+          onPress={() => navigation.navigate("PrivacyPolicy")}
+          style={styles.privacyRow}
+        >
+          <Ionicons name="shield-checkmark-outline" size={18} color={colors.gold.light} />
+          <Text style={styles.privacyText}>
+            {t('settings.privacyPolicy')}
+          </Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.gold.light} />
+        </Pressable>
       </ScrollView>
 
       {/* Time Picker Modal */}
@@ -384,24 +305,24 @@ export default function SettingsScreen() {
               }}
             >
               <Pressable
-                style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}
+                style={styles.modalOverlay}
                 onPress={() => {
                   setTimePickerOpen(null);
                   setTempTimeValue(null);
                 }}
               >
                 <Pressable
-                  style={{ backgroundColor: "white", padding: 20, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
+                  style={styles.timePickerModal}
                   onPress={(e) => e.stopPropagation()}
                 >
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                    <Text style={{ fontSize: 18, fontWeight: "600" }}>
+                  <View style={styles.timePickerHeader}>
+                    <Text style={styles.timePickerTitle}>
                       {timePickerOpen === "weekday"
                         ? t('settings.weekdayTime')
                         : t('settings.weekendTime')}
                     </Text>
-                    <Pressable onPress={handleTimeConfirm} style={{ padding: 8 }}>
-                      <Text style={{ fontSize: 16, fontWeight: "600" }}>
+                    <Pressable onPress={handleTimeConfirm} style={styles.timePickerDone}>
+                      <Text style={styles.timePickerDoneText}>
                         {t('common.done')}
                       </Text>
                     </Pressable>
@@ -429,25 +350,14 @@ export default function SettingsScreen() {
         onRequestClose={() => setSoundPickerOpen(false)}
       >
         <Pressable
-          style={{ 
-            flex: 1, 
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "center",
-            alignItems: "center"
-          }}
+          style={styles.modalOverlayCentered}
           onPress={() => setSoundPickerOpen(false)}
         >
           <Pressable
-            style={{ 
-              backgroundColor: "white", 
-              borderRadius: 16, 
-              padding: 20, 
-              minWidth: 280,
-              maxWidth: "90%"
-            }}
+            style={styles.soundPickerModal}
             onPress={(e) => e.stopPropagation()}
           >
-            <Text style={{ fontSize: 18, fontWeight: "600", marginBottom: 16, textAlign: "center" }}>
+            <Text style={styles.soundPickerTitle}>
               {t('settings.selectSound')}
             </Text>
             {SOUND_OPTIONS.map(opt => {
@@ -460,15 +370,15 @@ export default function SettingsScreen() {
                     setSoundId(opt.id);
                     setSoundPickerOpen(false);
                   }}
-                  style={{
-                    paddingVertical: 12,
-                    paddingHorizontal: 16,
-                    borderRadius: 8,
-                    backgroundColor: active ? "#E0E0E0" : "transparent",
-                    marginBottom: 8
-                  }}
+                  style={[
+                    styles.soundOption,
+                    active && styles.soundOptionActive
+                  ]}
                 >
-                  <Text style={{ fontSize: 16, fontWeight: active ? "600" : "400" }}>
+                  <Text style={[
+                    styles.soundOptionText,
+                    active && styles.soundOptionTextActive
+                  ]}>
                     {label}
                   </Text>
                 </Pressable>
@@ -476,15 +386,200 @@ export default function SettingsScreen() {
             })}
             <Pressable
               onPress={() => setSoundPickerOpen(false)}
-              style={{ marginTop: 12, paddingVertical: 12, alignItems: "center" }}
+              style={styles.cancelButton}
             >
-              <Text style={{ fontSize: 16, fontWeight: "600" }}>
+              <Text style={styles.cancelButtonText}>
                 {t('common.cancel')}
               </Text>
             </Pressable>
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </LinearGradient>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: spacing.containerPadding,
+    paddingTop: spacing.md,
+  },
+  section: {
+    marginBottom: spacing.xl,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: spacing.md,
+    color: colors.gold.light,
+    paddingHorizontal: 4,
+  },
+  languageToggle: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    backgroundColor: 'rgba(243, 234, 220, 0.15)',
+    padding: 4,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border.light,
+  },
+  languageButton: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: borderRadius.sm,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
+  },
+  languageButtonActive: {
+    backgroundColor: colors.gold.primary,
+  },
+  languageButtonText: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: colors.text.inverse,
+  },
+  languageButtonTextActive: {
+    fontWeight: '600',
+    color: colors.primary.darkest,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(209, 182, 122, 0.3)',
+  },
+  settingRowDisabled: {
+    opacity: 0.5,
+  },
+  settingLabel: {
+    fontSize: 16,
+    color: colors.text.inverse,
+  },
+  settingValue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  settingValueText: {
+    fontSize: 16,
+    color: colors.gold.light,
+  },
+  saveButtonContainer: {
+    marginTop: spacing.xxxl,
+    marginBottom: spacing.xxxl,
+    alignItems: 'center',
+  },
+  saveButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 48,
+    borderRadius: borderRadius.button,
+    backgroundColor: colors.gold.primary,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+  saveButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary.darkest,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay.medium,
+    justifyContent: 'flex-end',
+  },
+  timePickerModal: {
+    backgroundColor: colors.surface.white,
+    padding: spacing.xl,
+    borderTopLeftRadius: borderRadius.modal,
+    borderTopRightRadius: borderRadius.modal,
+  },
+  timePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  timePickerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text.primary,
+  },
+  timePickerDone: {
+    padding: spacing.sm,
+  },
+  timePickerDoneText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.gold.primary,
+  },
+  modalOverlayCentered: {
+    flex: 1,
+    backgroundColor: colors.overlay.medium,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  soundPickerModal: {
+    backgroundColor: colors.surface.white,
+    borderRadius: borderRadius.modal,
+    padding: spacing.xl,
+    minWidth: 280,
+    maxWidth: '90%',
+  },
+  soundPickerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: spacing.lg,
+    textAlign: 'center',
+    color: colors.text.primary,
+  },
+  soundOption: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderRadius: borderRadius.sm,
+    backgroundColor: 'transparent',
+    marginBottom: spacing.sm,
+  },
+  soundOptionActive: {
+    backgroundColor: colors.gold.light,
+  },
+  soundOptionText: {
+    fontSize: 16,
+    fontWeight: '400',
+    color: colors.text.primary,
+  },
+  soundOptionTextActive: {
+    fontWeight: '600',
+    color: colors.primary.darkest,
+  },
+  cancelButton: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text.muted,
+  },
+  privacyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.lg,
+    marginBottom: spacing.xxxl,
+  },
+  privacyText: {
+    fontSize: 14,
+    color: colors.gold.light,
+  },
+});

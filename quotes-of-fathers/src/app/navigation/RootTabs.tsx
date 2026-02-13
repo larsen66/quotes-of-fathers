@@ -9,6 +9,8 @@ import FathersScreen from "../screens/FathersScreen";
 import SettingsScreen from "../screens/SettingsScreen";
 import AboutScreen from "../screens/AboutScreen";
 
+import { colors } from "../../ui/theme";
+
 const Tab = createBottomTabNavigator();
 
 export default function RootTabs() {
@@ -17,8 +19,27 @@ export default function RootTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: "#4CAF50",
-        tabBarInactiveTintColor: "#9E9E9E",
+        tabBarActiveTintColor: colors.gold.primary,
+        tabBarInactiveTintColor: colors.text.muted,
+        tabBarStyle: {
+          backgroundColor: colors.primary.dark,
+          borderTopWidth: 0,
+          paddingTop: 4,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
+        },
+        headerStyle: {
+          backgroundColor: colors.primary.dark,
+          shadowColor: 'transparent',
+          elevation: 0,
+        },
+        headerTintColor: colors.text.inverse,
+        headerTitleStyle: {
+          fontWeight: '600',
+          fontSize: 18,
+        },
       }}
     >
       <Tab.Screen
@@ -37,7 +58,7 @@ export default function RootTabs() {
         options={{
           title: t("tabs.favorites"),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" size={size} color={color} />
+            <Ionicons name="heart-outline" size={size} color={color} />
           ),
         }}
       />

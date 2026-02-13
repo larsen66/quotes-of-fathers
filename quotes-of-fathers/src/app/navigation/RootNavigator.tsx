@@ -4,23 +4,12 @@ import { useFocusEffect } from "@react-navigation/native";
 import RootTabs from "./RootTabs";
 import FirstSyncRequiredScreen from "../screens/FirstSyncRequiredScreen";
 import QuoteScreen from "../screens/QuoteScreen";
-import SupabaseTestScreen from "../screens/SupabaseTestScreen";
 import { initDb } from "../../data/db/schema";
 import { isInitialSyncCompleted } from "../../data/db/repositories/syncStateRepo";
 import FatherProfileScreen from "../screens/FatherProfileScreen";
-import { flushFeedbackOutbox } from "../../data/db/repositories/flushFeedbackOutbox"; 
-
-// TEMPORARY: Set to true to test Supabase connection
-const TESTING_MODE = false;
-
-export type RootStackParamList = {
-    Tabs: undefined;
-    Quote: { quoteId: string };
-    FatherProfile: { fatherId: string };
-    FirstSync: undefined;
-    SupabaseTest: undefined;
-  };
-  
+import PrivacyPolicyScreen from "../screens/PrivacyPolicyScreen";
+import { flushFeedbackOutbox } from "../../data/db/repositories/flushFeedbackOutbox";
+import type { RootStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -63,19 +52,6 @@ export default function RootNavigator() {
 
   if (!ready) return null;
 
-  // Show test screen in testing mode
-  if (TESTING_MODE) {
-    return (
-      <Stack.Navigator screenOptions={{ headerShown: true }}>
-        <Stack.Screen 
-          name="SupabaseTest" 
-          component={SupabaseTestScreen}
-          options={{ title: 'Supabase Connection Test' }}
-        />
-      </Stack.Navigator>
-    );
-  }
-
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {done ? (
@@ -83,6 +59,7 @@ export default function RootNavigator() {
           <Stack.Screen name="Tabs" component={RootTabs} />
           <Stack.Screen name="FatherProfile" component={FatherProfileScreen} />
           <Stack.Screen name="Quote" component={QuoteScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
          
         </>
       ) : (

@@ -1,0 +1,33 @@
+{
+  "cli": {
+    "version": ">= 15.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "davidik0313@gmail.com",
+        "ascAppId": "6759115523",
+        "appleTeamId": "R7B7F338M2"
+      },
+      "android": {
+        "track": "internal"
+      }
+    }
+  }
+}

@@ -1,31 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ActivityIndicator, Alert, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import { initialSync } from "../../services/sync/initialSync";
+import { colors, spacing } from "../../ui/theme";
 
 export default function FirstSyncRequiredScreen() {
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Автоматически запускаем синхронизацию при входе
     handleSync();
   }, []);
 
   const handleSync = async () => {
     try {
       await initialSync();
-      // RootNavigator автоматически переключится на Tabs
-      // после успешной синхронизации
     } catch (error) {
       console.error("Sync error:", error);
       const errorMessage = t(
-        "common.syncError", 
+        "common.syncError",
         "Не удалось выполнить синхронизацию. Проверьте подключение к интернету."
       );
       setError(errorMessage);
-      
-      // Показываем алерт с возможностью повторить
+
       Alert.alert(
         t("common.error", "Ошибка"),
         errorMessage,
@@ -43,15 +41,18 @@ export default function FirstSyncRequiredScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#007AFF" />
-      
+    <LinearGradient
+      colors={[colors.background.gradientStart, colors.background.gradientMiddle, colors.background.gradientEnd]}
+      style={styles.container}
+    >
+      <ActivityIndicator size="large" color={colors.gold.primary} />
+
       <Text style={styles.title}>
-        {error 
+        {error
           ? t("common.syncFailed", "Синхронизация не удалась")
           : t("common.syncing", "Синхронизация данных...")}
       </Text>
-      
+
       {!error && (
         <Text style={styles.subtitle}>
           {t("common.pleaseWait", "Пожалуйста, подождите")}
@@ -61,37 +62,36 @@ export default function FirstSyncRequiredScreen() {
       {error && (
         <Text style={styles.errorText}>{error}</Text>
       )}
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: spacing.xl,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
   },
   title: {
     fontSize: 20,
     fontWeight: "600",
-    marginTop: 24,
-    marginBottom: 8,
+    marginTop: spacing.xxl,
+    marginBottom: spacing.sm,
     textAlign: "center",
-    color: "#333",
+    color: colors.text.inverse,
   },
   subtitle: {
     fontSize: 16,
     textAlign: "center",
-    color: "#666",
-    marginTop: 8,
+    color: colors.gold.light,
+    marginTop: spacing.sm,
   },
   errorText: {
     fontSize: 14,
     textAlign: "center",
-    color: "#FF3B30",
-    marginTop: 16,
-    paddingHorizontal: 20,
+    color: '#e74c3c',
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.xl,
   },
 });

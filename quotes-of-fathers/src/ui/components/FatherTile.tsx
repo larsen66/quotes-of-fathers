@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, Image, Pressable, StyleSheet } from "react-native";
+import { colors, borderRadius, spacing, avatarRing } from "../theme";
 
 export type FatherTileProps = {
   id: string;
@@ -34,16 +35,20 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
-    borderRadius: 12,
+    padding: spacing.md,
+    borderRadius: borderRadius.card,
     borderWidth: 1,
-    marginBottom: 12,
-    gap: 12,
+    borderColor: colors.border.light,
+    backgroundColor: colors.surface.secondary,
+    marginBottom: spacing.md,
+    gap: spacing.md,
   },
   avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: spacing.avatarMedium,
+    height: spacing.avatarMedium,
+    borderRadius: spacing.avatarMedium / 2,
+    backgroundColor: colors.surface.tertiary,
+    ...avatarRing,
   },
   textContainer: {
     flex: 1,
@@ -51,6 +56,6 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: "600",
+    color: colors.text.primary,
   },
 });
-
