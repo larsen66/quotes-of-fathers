@@ -1,6 +1,7 @@
 import { loadFathers } from "./loadFathers";
 import { loadQuotes } from "./loadQuotes";
 import { saveFather } from "./saveFathers";
+import { downloadFile } from "./downloadFile";
 import { db } from "../../data/db/db";
 import { setInitialSyncCompleted } from "../../data/db/repositories/syncStateRepo";
 
@@ -10,11 +11,15 @@ export async function initialSync() {
     const fathers = await loadFathers();
 
     for (const father of fathers) {
-      // Сохраняем URL напрямую — expo-image кеширует на диск автоматически
+      const avatarLocalPath = await downloadFile(father.avatarUrl, `avatar_${father.id}.jpg`);
+      const profileLocalPath = father.profileImageUrl
+        ? await downloadFile(father.profileImageUrl, `profile_${father.id}.jpg`)
+        : null;
+
       saveFather({
         ...father,
-        avatarLocalPath: father.avatarUrl,
-        profileLocalPath: father.profileImageUrl || null
+        avatarLocalPath,
+        profileLocalPath,
       });
     }
 

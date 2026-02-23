@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { Father, FatherInsert, FatherUpdate } from "../types/database";
+import type { Father, FatherInsert, FatherUpdate } from "../types/database";
 
 export async function getFathers(): Promise<Father[]> {
   const { data, error } = await supabase

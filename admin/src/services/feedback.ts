@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { Feedback } from "../types/database";
+import type { Feedback } from "../types/database";
 
 export async function getFeedback(): Promise<Feedback[]> {
   const { data, error } = await supabase

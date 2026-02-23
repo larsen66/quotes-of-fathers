@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { AppSettings } from "../types/database";
+import type { AppSettings } from "../types/database";
 
 export async function getAppSettings(): Promise<AppSettings> {
   const { data, error } = await supabase

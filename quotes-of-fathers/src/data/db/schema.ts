@@ -1,6 +1,6 @@
 import { db } from "./db";
 
-const SCHEMA_VERSION = 2; // bump to force re-sync on app update
+const SCHEMA_VERSION = 3; // bump to force re-sync on app update
 
 export function initDb() {
   try {

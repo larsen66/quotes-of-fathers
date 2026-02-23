@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { Quote, QuoteInsert, QuoteUpdate } from "../types/database";
+import type { Quote, QuoteInsert, QuoteUpdate } from "../types/database";
 
 export interface GetQuotesOptions {
   fatherId?: string;

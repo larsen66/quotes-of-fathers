@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { User, Session } from "@supabase/supabase-js";
+import type { User, Session } from "@supabase/supabase-js";
 
 export async function signIn(email: string, password: string): Promise<{ user: User; session: Session }> {
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -29,7 +29,7 @@ export async function getCurrentSession(): Promise<Session | null> {
 }
 
 export function onAuthStateChange(callback: (user: User | null) => void) {
-  return supabase.auth.onAuthStateChange((event, session) => {
+  return supabase.auth.onAuthStateChange((_event, session) => {
     callback(session?.user ?? null);
   });
 }

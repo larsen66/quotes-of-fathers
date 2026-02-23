@@ -10,6 +10,8 @@ import FathersPage from './pages/FathersPage';
 import QuotesPage from './pages/QuotesPage';
 import FeedbackPage from './pages/FeedbackPage';
 import SettingsPage from './pages/SettingsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import SupportPage from './pages/SupportPage';
 import { CircularProgress, Box } from '@mui/material';
 
 const theme = createTheme({
@@ -250,6 +252,8 @@ function AppRoutes() {
         <Route path="feedback" element={<FeedbackPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+      <Route path="/support" element={<SupportPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
