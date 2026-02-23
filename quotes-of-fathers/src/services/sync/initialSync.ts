@@ -5,54 +5,42 @@ import { saveFather } from "./saveFathers";
 import { db } from "../../data/db/db";
 import { setInitialSyncCompleted } from "../../data/db/repositories/syncStateRepo";
 
+function getExtension(url: string): string {
+  const match = url.match(/\.(\w+)(?:\?|$)/);
+  return match ? match[1] : "png";
+}
+
 export async function initialSync() {
-  console.log("🔄 Starting initial sync...");
-  
   try {
     // 1. Загружаем отцов
-    console.log("📥 Loading fathers from Supabase...");
     const fathers = await loadFathers();
-    console.log(`✅ Loaded ${fathers.length} fathers`);
 
     for (const father of fathers) {
-      console.log(`Processing father: ${father.name.ka}`);
-      
-      // 2. Скачиваем изображения из Supabase Storage
-      try {
-        console.log(`📥 Downloading avatar from: ${father.avatarUrl}`);
-        const avatarLocalPath = await downloadFile(father.avatarUrl, `avatar_${father.id}.jpg`);
-        console.log(`✅ Avatar downloaded to: ${avatarLocalPath}`);
-        
-        const profileLocalPath = father.profileImageUrl
-          ? await downloadFile(father.profileImageUrl, `profile_${father.id}.jpg`)
-          : null;
-        
-        if (profileLocalPath) {
-          console.log(`✅ Profile image downloaded to: ${profileLocalPath}`);
-        }
+      let avatarLocalPath = father.avatarUrl;
+      let profileLocalPath = father.profileImageUrl || null;
 
-        // 3. Сохраняем отца локально
-        saveFather({
-          ...father,
-          avatarLocalPath,
-          profileLocalPath
-        });
-        console.log(`✅ Saved ${father.name.ka} to local DB`);
+      try {
+        const ext = getExtension(father.avatarUrl);
+        avatarLocalPath = await downloadFile(father.avatarUrl, `avatar_${father.id}.${ext}`);
+
+        if (father.profileImageUrl) {
+          const pExt = getExtension(father.profileImageUrl);
+          profileLocalPath = await downloadFile(father.profileImageUrl, `profile_${father.id}.${pExt}`);
+        }
       } catch (error) {
-        console.error(`❌ Failed to download images for ${father.name.ka}:`, error);
-        // Сохраняем с URL-ами в случае ошибки скачивания
-        saveFather({
-          ...father,
-          avatarLocalPath: father.avatarUrl,
-          profileLocalPath: father.profileImageUrl || null
-        });
+        // Если скачивание не удалось — сохраняем URL (загрузятся по сети)
+        console.error("Image download failed, using remote URL:", error);
       }
+
+      saveFather({
+        ...father,
+        avatarLocalPath,
+        profileLocalPath
+      });
     }
 
-    // 4. Загружаем цитаты
-    console.log("📥 Loading quotes from Supabase...");
+    // 2. Загружаем цитаты
     const quotes = await loadQuotes();
-    console.log(`✅ Loaded ${quotes.length} quotes`);
 
     for (const q of quotes) {
       db.runSync(
@@ -71,13 +59,11 @@ export async function initialSync() {
         ]
       );
     }
-    console.log(`✅ Saved ${quotes.length} quotes to local DB`);
 
-    // 5. Фиксируем: первая синхронизация завершена
+    // 3. Фиксируем: первая синхронизация завершена
     setInitialSyncCompleted(true);
-    console.log("✅ Initial sync completed successfully!");
   } catch (error) {
-    console.error("❌ Initial sync failed:", error);
+    console.error("Initial sync failed:", error);
     throw error;
   }
 }

@@ -7,9 +7,8 @@ export async function downloadFile(
   if (!documentDirectory) {
     throw new Error("Document directory is not available");
   }
-  
-  const localPath = documentDirectory + localName;
 
-  const result = await downloadAsync(url, localPath);
-  return result.uri;
+  const localPath = documentDirectory + localName;
+  const { uri } = await downloadAsync(url, localPath);
+  return uri;
 }
