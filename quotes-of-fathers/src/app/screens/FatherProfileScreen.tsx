@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Image, FlatList, Pressable, SafeAreaView, StyleSheet } from "react-native";
+import { View, Text, FlatList, Pressable, SafeAreaView, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
@@ -78,7 +79,7 @@ export default function FatherProfileScreen() {
                   <Image
                     source={{ uri: headerImage }}
                     style={styles.headerImage}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 </View>
               </View>

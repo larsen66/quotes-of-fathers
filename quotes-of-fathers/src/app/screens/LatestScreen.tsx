@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, FlatList, Image, RefreshControl, Pressable, StyleSheet } from "react-native";
+import { View, Text, FlatList, RefreshControl, Pressable, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import { getLatestQuotes } from "../../data/db/repositories/quotesRepo";
@@ -83,7 +84,7 @@ export default function LatestScreen() {
                     <Image
                       source={{ uri: item.fatherAvatarLocalPath }}
                       style={styles.avatar}
-                      resizeMode="cover"
+                      contentFit="cover"
                     />
                   ) : (
                     <View style={[styles.avatar, styles.avatarPlaceholder]}>
@@ -125,7 +126,7 @@ export default function LatestScreen() {
             <Image
               source={require("../../../assets/divider_cropped.png")}
               style={styles.dividerImage}
-              resizeMode="contain"
+              contentFit="contain"
             />
           </View>
         )}

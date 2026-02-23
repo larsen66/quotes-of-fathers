@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { FlatList, Image, Pressable, Text, View, useWindowDimensions, StyleSheet } from "react-native";
+import { FlatList, Pressable, Text, View, useWindowDimensions, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
@@ -55,7 +56,7 @@ export default function FathersScreen() {
                   <Image
                     source={{ uri: item.avatarLocalPath }}
                     style={[styles.tileImage, { width: imageSize - 4, height: imageSize - 4 }]}
-                    resizeMode="cover"
+                    contentFit="cover"
                   />
                 </View>
               </View>

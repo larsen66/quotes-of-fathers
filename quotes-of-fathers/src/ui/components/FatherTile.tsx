@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, Image, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { colors, borderRadius, spacing, avatarRing } from "../theme";
 
 export type FatherTileProps = {

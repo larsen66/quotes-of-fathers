@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, Image, Pressable, ScrollView, SafeAreaView, Share, StyleSheet } from "react-native";
+import { View, Text, Pressable, ScrollView, SafeAreaView, Share, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
@@ -79,7 +80,7 @@ export default function QuoteScreen() {
               <Image
                 source={{ uri: data.fatherProfileLocalPath || data.fatherAvatarLocalPath }}
                 style={styles.profileImage}
-                resizeMode="cover"
+                contentFit="cover"
               />
             </View>
           </View>
