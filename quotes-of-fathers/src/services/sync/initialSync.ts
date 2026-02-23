@@ -1,14 +1,8 @@
 import { loadFathers } from "./loadFathers";
 import { loadQuotes } from "./loadQuotes";
-import { downloadFile } from "./downloadFile";
 import { saveFather } from "./saveFathers";
 import { db } from "../../data/db/db";
 import { setInitialSyncCompleted } from "../../data/db/repositories/syncStateRepo";
-
-function getExtension(url: string): string {
-  const match = url.match(/\.(\w+)(?:\?|$)/);
-  return match ? match[1] : "png";
-}
 
 export async function initialSync() {
   try {
@@ -16,26 +10,11 @@ export async function initialSync() {
     const fathers = await loadFathers();
 
     for (const father of fathers) {
-      let avatarLocalPath = father.avatarUrl;
-      let profileLocalPath = father.profileImageUrl || null;
-
-      try {
-        const ext = getExtension(father.avatarUrl);
-        avatarLocalPath = await downloadFile(father.avatarUrl, `avatar_${father.id}.${ext}`);
-
-        if (father.profileImageUrl) {
-          const pExt = getExtension(father.profileImageUrl);
-          profileLocalPath = await downloadFile(father.profileImageUrl, `profile_${father.id}.${pExt}`);
-        }
-      } catch (error) {
-        // Если скачивание не удалось — сохраняем URL (загрузятся по сети)
-        console.error("Image download failed, using remote URL:", error);
-      }
-
+      // Сохраняем URL напрямую — expo-image кеширует на диск автоматически
       saveFather({
         ...father,
-        avatarLocalPath,
-        profileLocalPath
+        avatarLocalPath: father.avatarUrl,
+        profileLocalPath: father.profileImageUrl || null
       });
     }
 

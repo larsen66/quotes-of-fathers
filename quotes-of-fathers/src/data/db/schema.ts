@@ -1,5 +1,7 @@
 import { db } from "./db";
 
+const SCHEMA_VERSION = 2; // bump to force re-sync on app update
+
 export function initDb() {
   try {
     db.execSync(`
@@ -64,16 +66,25 @@ CREATE TABLE IF NOT EXISTS feedback_outbox (
     contact TEXT,
     language TEXT NOT NULL,
     createdAt TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending',   -- pending | sent | failed
+    status TEXT NOT NULL DEFAULT 'pending',
     lastError TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_feedback_outbox_status ON feedback_outbox(status);
 CREATE INDEX IF NOT EXISTS idx_feedback_outbox_createdAt ON feedback_outbox(createdAt);
-
-
-
     `);
+
+    // Check schema version — force re-sync if outdated
+    const row = db.getFirstSync<{ schemaVersion: number }>(
+      "SELECT schemaVersion FROM sync_state WHERE id = 1"
+    );
+    if (row && row.schemaVersion < SCHEMA_VERSION) {
+      db.runSync(
+        "UPDATE sync_state SET initialSyncCompleted = 0, schemaVersion = ? WHERE id = 1",
+        [SCHEMA_VERSION]
+      );
+      db.execSync("DELETE FROM fathers; DELETE FROM quotes;");
+    }
   } catch (error) {
     console.error("Error initializing database:", error);
     throw error;
