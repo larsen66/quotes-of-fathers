@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { initialSync } from "../../services/sync/initialSync";
 import { colors, spacing } from "../../ui/theme";
 
-export default function FirstSyncRequiredScreen() {
+export default function FirstSyncRequiredScreen({ onSyncComplete }: { onSyncComplete?: () => void }) {
   const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
 
@@ -16,6 +16,7 @@ export default function FirstSyncRequiredScreen() {
   const handleSync = async () => {
     try {
       await initialSync();
+      onSyncComplete?.();
     } catch (error) {
       console.error("Sync error:", error);
       const errorMessage = t(

@@ -63,7 +63,9 @@ export default function RootNavigator() {
          
         </>
       ) : (
-        <Stack.Screen name="FirstSync" component={FirstSyncRequiredScreen} />
+        <Stack.Screen name="FirstSync">
+          {() => <FirstSyncRequiredScreen onSyncComplete={() => setDone(true)} />}
+        </Stack.Screen>
       )}
     </Stack.Navigator>
   );

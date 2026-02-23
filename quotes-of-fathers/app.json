@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "quotes-of-fathers",
+    "name": "Saint king Tamari",
     "slug": "quotes-of-fathers",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,7 +17,8 @@
       "bundleIdentifier": "com.retree.fathers",
       "buildNumber": "1",
       "infoPlist": {
-        "NSUserNotificationsUsageDescription": "We send daily quotes from the Holy Fathers to inspire your spiritual journey."
+        "NSUserNotificationsUsageDescription": "We send daily quotes from the Holy Fathers to inspire your spiritual journey.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
